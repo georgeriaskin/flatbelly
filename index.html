@@ -1,0 +1,757 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FlatBelly – твой помощник с питанием в Telegram</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
+  
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  
+  :root {
+    --bg: #0a0a0a;
+    --card: #141414;
+    --card-border: #222;
+    --accent: #4ADE80;
+    --accent2: #22D3EE;
+    --text: #f5f5f5;
+    --text2: #a0a0a0;
+    --orange: #FB923C;
+  }
+  
+  body {
+    font-family: 'Inter', -apple-system, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.6;
+    overflow-x: hidden;
+  }
+  
+  .container { max-width: 720px; margin: 0 auto; padding: 0 24px; }
+  
+  /* Hero */
+  .hero {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    padding: 80px 24px 60px;
+    position: relative;
+  }
+  
+  .hero::before {
+    content: '';
+    position: absolute;
+    top: -20%;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 600px;
+    height: 600px;
+    background: radial-gradient(circle, rgba(74,222,128,0.08) 0%, transparent 70%);
+    pointer-events: none;
+  }
+  
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 16px;
+    background: rgba(74,222,128,0.1);
+    border: 1px solid rgba(74,222,128,0.2);
+    border-radius: 100px;
+    font-size: 14px;
+    color: var(--accent);
+    font-weight: 500;
+    margin-bottom: 32px;
+  }
+  
+  .badge::before { content: '🤖'; }
+  
+  h1 {
+    font-size: clamp(36px, 7vw, 64px);
+    font-weight: 900;
+    line-height: 1.1;
+    margin-bottom: 24px;
+    letter-spacing: -0.02em;
+  }
+  
+  h1 span {
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+  
+  .hero-sub {
+    font-size: clamp(18px, 3vw, 22px);
+    color: var(--text2);
+    max-width: 520px;
+    margin-bottom: 40px;
+    line-height: 1.5;
+  }
+  
+  .cta-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    padding: 18px 36px;
+    background: linear-gradient(135deg, var(--accent), #22c55e);
+    color: #000;
+    font-size: 18px;
+    font-weight: 700;
+    border: none;
+    border-radius: 16px;
+    cursor: pointer;
+    text-decoration: none;
+    transition: transform 0.2s, box-shadow 0.2s;
+    box-shadow: 0 0 40px rgba(74,222,128,0.2);
+  }
+  
+  .cta-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 0 60px rgba(74,222,128,0.3);
+  }
+  
+  .cta-sub {
+    margin-top: 16px;
+    font-size: 14px;
+    color: var(--text2);
+  }
+  
+  /* Demo chat */
+  .demo-section {
+    padding: 80px 24px;
+  }
+  
+  .section-label {
+    text-align: center;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--accent);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    margin-bottom: 16px;
+  }
+  
+  h2 {
+    text-align: center;
+    font-size: clamp(28px, 5vw, 40px);
+    font-weight: 800;
+    margin-bottom: 48px;
+    letter-spacing: -0.01em;
+  }
+  
+  .chat-demo {
+    max-width: 420px;
+    margin: 0 auto;
+    background: var(--card);
+    border: 1px solid var(--card-border);
+    border-radius: 20px;
+    overflow: hidden;
+  }
+  
+  .chat-header {
+    padding: 16px 20px;
+    background: #1a1a1a;
+    border-bottom: 1px solid var(--card-border);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  
+  .chat-avatar {
+    width: 40px;
+    height: 40px;
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+  }
+  
+  .chat-name {
+    font-weight: 600;
+    font-size: 15px;
+  }
+  
+  .chat-status {
+    font-size: 12px;
+    color: var(--accent);
+  }
+  
+  .chat-body {
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+  
+  .msg {
+    max-width: 85%;
+    padding: 12px 16px;
+    border-radius: 16px;
+    font-size: 14px;
+    line-height: 1.5;
+    animation: fadeUp 0.5s ease both;
+  }
+  
+  .msg-user {
+    align-self: flex-end;
+    background: #2563EB;
+    border-bottom-right-radius: 4px;
+  }
+  
+  .msg-bot {
+    align-self: flex-start;
+    background: #262626;
+    border: 1px solid #333;
+    border-bottom-left-radius: 4px;
+  }
+  
+  .msg-photo {
+    align-self: flex-end;
+    background: #1a1a1a;
+    border-radius: 16px;
+    border-bottom-right-radius: 4px;
+    padding: 8px;
+    max-width: 70%;
+  }
+  
+  .msg-photo-placeholder {
+    width: 100%;
+    aspect-ratio: 4/3;
+    background: linear-gradient(135deg, #2a1a0a, #1a2a0a);
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 40px;
+  }
+  
+  .msg-photo-caption {
+    padding: 8px 4px 4px;
+    font-size: 13px;
+    color: var(--text2);
+  }
+  
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  
+  .msg:nth-child(1) { animation-delay: 0s; }
+  .msg:nth-child(2) { animation-delay: 0.15s; }
+  .msg:nth-child(3) { animation-delay: 0.3s; }
+  .msg:nth-child(4) { animation-delay: 0.45s; }
+  
+  /* How it works */
+  .how-section {
+    padding: 80px 24px;
+  }
+  
+  .steps {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+    max-width: 520px;
+    margin: 0 auto;
+  }
+  
+  .step {
+    display: flex;
+    gap: 20px;
+    align-items: flex-start;
+    padding: 24px;
+    background: var(--card);
+    border: 1px solid var(--card-border);
+    border-radius: 16px;
+    transition: border-color 0.3s;
+  }
+  
+  .step:hover { border-color: rgba(74,222,128,0.3); }
+  
+  .step-num {
+    flex-shrink: 0;
+    width: 44px;
+    height: 44px;
+    background: rgba(74,222,128,0.1);
+    border: 1px solid rgba(74,222,128,0.2);
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    font-weight: 800;
+    color: var(--accent);
+  }
+  
+  .step h3 {
+    font-size: 17px;
+    font-weight: 700;
+    margin-bottom: 6px;
+  }
+  
+  .step p {
+    font-size: 14px;
+    color: var(--text2);
+    line-height: 1.5;
+  }
+  
+  /* Features */
+  .features-section {
+    padding: 80px 24px;
+  }
+  
+  .features-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    max-width: 520px;
+    margin: 0 auto;
+  }
+  
+  .feature {
+    padding: 24px;
+    background: var(--card);
+    border: 1px solid var(--card-border);
+    border-radius: 16px;
+    transition: border-color 0.3s;
+  }
+  
+  .feature:hover { border-color: rgba(74,222,128,0.3); }
+  
+  .feature-icon {
+    font-size: 28px;
+    margin-bottom: 12px;
+  }
+  
+  .feature h3 {
+    font-size: 15px;
+    font-weight: 700;
+    margin-bottom: 6px;
+  }
+  
+  .feature p {
+    font-size: 13px;
+    color: var(--text2);
+    line-height: 1.5;
+  }
+  
+  /* Comparison */
+  .compare-section {
+    padding: 80px 24px;
+  }
+  
+  .compare-table {
+    max-width: 520px;
+    margin: 0 auto;
+    border-radius: 16px;
+    overflow: hidden;
+    border: 1px solid var(--card-border);
+  }
+  
+  .compare-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    border-bottom: 1px solid var(--card-border);
+  }
+  
+  .compare-row:last-child { border-bottom: none; }
+  
+  .compare-row.header {
+    background: #1a1a1a;
+    font-weight: 700;
+    font-size: 14px;
+  }
+  
+  .compare-cell {
+    padding: 14px 16px;
+    font-size: 13px;
+    display: flex;
+    align-items: center;
+  }
+  
+  .compare-cell:not(:last-child) {
+    border-right: 1px solid var(--card-border);
+  }
+  
+  .compare-cell.highlight {
+    background: rgba(74,222,128,0.05);
+  }
+  
+  .check { color: var(--accent); font-weight: 700; }
+  .cross { color: #666; }
+  
+  /* Proactive */
+  .proactive-section {
+    padding: 80px 24px;
+  }
+  
+  .proactive-demo {
+    max-width: 420px;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+  
+  .notification {
+    display: flex;
+    gap: 14px;
+    align-items: flex-start;
+    padding: 20px;
+    background: var(--card);
+    border: 1px solid var(--card-border);
+    border-radius: 16px;
+    border-left: 3px solid var(--accent);
+  }
+  
+  .notif-time {
+    flex-shrink: 0;
+    font-size: 13px;
+    color: var(--text2);
+    font-weight: 600;
+    min-width: 50px;
+  }
+  
+  .notif-text {
+    font-size: 14px;
+    line-height: 1.5;
+  }
+  
+  .notif-text strong { color: var(--accent); }
+  
+  /* Pricing */
+  .pricing-section {
+    padding: 80px 24px;
+  }
+  
+  .pricing-cards {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    max-width: 520px;
+    margin: 0 auto;
+  }
+  
+  .pricing-card {
+    padding: 28px 24px;
+    background: var(--card);
+    border: 1px solid var(--card-border);
+    border-radius: 16px;
+    text-align: center;
+  }
+  
+  .pricing-card.popular {
+    border-color: var(--accent);
+    position: relative;
+    box-shadow: 0 0 40px rgba(74,222,128,0.08);
+  }
+  
+  .popular-badge {
+    position: absolute;
+    top: -12px;
+    left: 50%;
+    transform: translateX(-50%);
+    padding: 4px 16px;
+    background: var(--accent);
+    color: #000;
+    font-size: 12px;
+    font-weight: 700;
+    border-radius: 100px;
+    white-space: nowrap;
+  }
+  
+  .pricing-card h3 {
+    font-size: 16px;
+    font-weight: 600;
+    margin-bottom: 8px;
+    color: var(--text2);
+  }
+  
+  .price {
+    font-size: 36px;
+    font-weight: 900;
+    margin-bottom: 4px;
+  }
+  
+  .price-period {
+    font-size: 13px;
+    color: var(--text2);
+    margin-bottom: 20px;
+  }
+  
+  .pricing-card ul {
+    list-style: none;
+    text-align: left;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  
+  .pricing-card li {
+    font-size: 13px;
+    color: var(--text2);
+    padding-left: 20px;
+    position: relative;
+  }
+  
+  .pricing-card li::before {
+    content: '✓';
+    position: absolute;
+    left: 0;
+    color: var(--accent);
+    font-weight: 700;
+  }
+  
+  /* Final CTA */
+  .final-cta {
+    padding: 80px 24px 100px;
+    text-align: center;
+  }
+  
+  .final-cta h2 {
+    margin-bottom: 16px;
+  }
+  
+  .final-cta p {
+    color: var(--text2);
+    margin-bottom: 32px;
+    font-size: 16px;
+  }
+  
+  /* Footer */
+  footer {
+    padding: 24px;
+    text-align: center;
+    font-size: 13px;
+    color: #555;
+    border-top: 1px solid var(--card-border);
+  }
+  
+  footer a { color: #777; text-decoration: none; }
+  footer a:hover { color: var(--text2); }
+  
+  @media (max-width: 520px) {
+    .features-grid, .pricing-cards { grid-template-columns: 1fr; }
+    .compare-cell { padding: 10px 12px; font-size: 12px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- Hero -->
+<section class="hero">
+  <div class="badge">Telegram-бот с AI</div>
+  <h1>Хочешь <span>плоский живот</span>?<br>Скинь фотку еды.</h1>
+  <p class="hero-sub">FlatBelly за 3 секунды скажет, можно это есть или лучше заменить. Просто скинь фотку в Telegram. Без таблиц, без подсчётов, только конкретный совет.</p>
+  <a href="https://t.me/flatbelly_bot" class="cta-btn">
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm4.64 6.8c-.15 1.58-.8 5.42-1.13 7.19-.14.75-.42 1-.68 1.03-.58.05-1.02-.38-1.58-.75-.88-.58-1.38-.94-2.23-1.5-.99-.65-.35-1.01.22-1.59.15-.15 2.71-2.48 2.76-2.69.01-.03.01-.14-.07-.2-.08-.06-.19-.04-.28-.02-.12.03-2.07 1.32-5.84 3.87-.55.38-1.05.56-1.5.55-.49-.01-1.44-.28-2.15-.51-.87-.28-1.56-.44-1.5-.92.03-.25.38-.51 1.05-.78 4.12-1.79 6.87-2.97 8.26-3.54 3.93-1.62 4.75-1.9 5.28-1.91.12 0 .37.03.54.17.14.12.18.28.2.45-.01.06.01.24 0 .37z"/></svg>
+    Открыть в Telegram
+  </a>
+  <p class="cta-sub">Бесплатно · Без регистрации · Работает сразу</p>
+</section>
+
+<!-- Demo chat -->
+<section class="demo-section">
+  <div class="container">
+    <div class="section-label">Как это работает</div>
+    <h2>Сфоткал. Спросил. Понял.</h2>
+    <div class="chat-demo">
+      <div class="chat-header">
+        <div class="chat-avatar">🟢</div>
+        <div>
+          <div class="chat-name">FlatBelly Bot</div>
+          <div class="chat-status">онлайн</div>
+        </div>
+      </div>
+      <div class="chat-body">
+        <div class="msg msg-photo">
+          <div class="msg-photo-placeholder">🍝</div>
+          <div class="msg-photo-caption">Можно это на обед?</div>
+        </div>
+        <div class="msg msg-bot">
+          <strong>Паста карбонара</strong> – многовато для твоей цели. Там ~650 ккал и много жиров из бекона и сливок.<br><br>
+          🔄 <strong>Замени на:</strong> пасту с томатным соусом и курицей — вдвое меньше калорий, а наешься так же.<br><br>
+          Или убери половину порции и добавь салат 🥗
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- How it works -->
+<section class="how-section">
+  <div class="container">
+    <div class="section-label">3 шага</div>
+    <h2>Проще, чем кажется</h2>
+    <div class="steps">
+      <div class="step">
+        <div class="step-num">1</div>
+        <div>
+          <h3>Расскажи о себе</h3>
+          <p>Рост, вес, возраст, сколько хочешь сбросить. Бот запомнит и будет учитывать в каждом совете.</p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">2</div>
+        <div>
+          <h3>Скидывай фото еды</h3>
+          <p>Перед обедом, в ресторане, у холодильника — в любой момент. Бот скажет: можно, нельзя, или чем заменить.</p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">3</div>
+        <div>
+          <h3>Бот сам напомнит</h3>
+          <p>Забыл записать завтрак? Бот напишет первым: «Чем обедал? Скинь, запишем». Как друг, который шарит в питании, только без осуждения.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Features -->
+<section class="features-section">
+  <div class="container">
+    <div class="section-label">Возможности</div>
+    <h2>Всё в одном чате</h2>
+    <div class="features-grid">
+      <div class="feature">
+        <div class="feature-icon">📸</div>
+        <h3>Фото → Совет</h3>
+        <p>Сфоткай тарелку — за 3 секунды получишь ответ: есть или не есть</p>
+      </div>
+      <div class="feature">
+        <div class="feature-icon">🔔</div>
+        <h3>Сам напишет</h3>
+        <p>Напомнит записать приёмы пищи, спросит как дела и поддержит</p>
+      </div>
+      <div class="feature">
+        <div class="feature-icon">💬</div>
+        <h3>Спроси что угодно</h3>
+        <p>«На корпоративе, что заказать?» «Объелся, что делать?» — ответит на любой вопрос</p>
+      </div>
+      <div class="feature">
+        <div class="feature-icon">📊</div>
+        <h3>Видишь прогресс</h3>
+        <p>Еженедельный отчёт: что получилось, что улучшить, сколько до цели</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Comparison -->
+<section class="compare-section">
+  <div class="container">
+    <div class="section-label">Сравнение</div>
+    <h2>Не ещё один трекер</h2>
+    <div class="compare-table">
+      <div class="compare-row header">
+        <div class="compare-cell"></div>
+        <div class="compare-cell highlight">FlatBelly</div>
+        <div class="compare-cell">Трекеры калорий</div>
+      </div>
+      <div class="compare-row">
+        <div class="compare-cell" style="font-weight:600;">Ответ за 3 сек</div>
+        <div class="compare-cell highlight"><span class="check">✓ да/нет/замени</span></div>
+        <div class="compare-cell"><span class="cross">таблица цифр</span></div>
+      </div>
+      <div class="compare-row">
+        <div class="compare-cell" style="font-weight:600;">Пишет первым</div>
+        <div class="compare-cell highlight"><span class="check">✓ напоминает</span></div>
+        <div class="compare-cell"><span class="cross">✗ нет</span></div>
+      </div>
+      <div class="compare-row">
+        <div class="compare-cell" style="font-weight:600;">Понимает контекст</div>
+        <div class="compare-cell highlight"><span class="check">✓ знает твою цель</span></div>
+        <div class="compare-cell"><span class="cross">✗ просто считает</span></div>
+      </div>
+      <div class="compare-row">
+        <div class="compare-cell" style="font-weight:600;">Можно спросить</div>
+        <div class="compare-cell highlight"><span class="check">✓ любой вопрос</span></div>
+        <div class="compare-cell"><span class="cross">✗ только ввод</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Proactive -->
+<section class="proactive-section">
+  <div class="container">
+    <div class="section-label">Не забудешь</div>
+    <h2>Бот напишет сам</h2>
+    <div class="proactive-demo">
+      <div class="notification">
+        <div class="notif-time">9:00</div>
+        <div class="notif-text">Доброе утро! ☀️ Чем завтракаешь сегодня? Скинь фотку — оценим вместе</div>
+      </div>
+      <div class="notification">
+        <div class="notif-time">13:30</div>
+        <div class="notif-text">Время обеда! 🍽 Что ешь? Если сомневаешься — сфоткай, подскажу</div>
+      </div>
+      <div class="notification">
+        <div class="notif-time">19:00</div>
+        <div class="notif-text">Вечер! Сегодня ты отлично держался 💪 Чем планируешь ужинать?</div>
+      </div>
+      <div class="notification">
+        <div class="notif-time">Вс</div>
+        <div class="notif-text">📊 <strong>Твоя неделя:</strong> 5 из 7 дней в плане, калории в норме. Так держать — до цели осталось ~3 кг!</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Pricing -->
+<section class="pricing-section">
+  <div class="container">
+    <div class="section-label">Тарифы</div>
+    <h2>Дешевле чашки кофе</h2>
+    <div class="pricing-cards">
+      <div class="pricing-card">
+        <h3>Бесплатно</h3>
+        <div class="price">0 ₽</div>
+        <div class="price-period">навсегда</div>
+        <ul>
+          <li>3 фото-оценки в день</li>
+          <li>Базовые рекомендации</li>
+          <li>Онбординг и настройка цели</li>
+        </ul>
+      </div>
+      <div class="pricing-card popular">
+        <div class="popular-badge">Популярный</div>
+        <h3>PRO</h3>
+        <div class="price">399 ₽</div>
+        <div class="price-period">в месяц</div>
+        <ul>
+          <li>Безлимитные фото-оценки</li>
+          <li>Проактивные напоминания</li>
+          <li>Свободный чат с AI</li>
+          <li>Еженедельные отчёты</li>
+          <li>Персональные рекомендации</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Final CTA -->
+<section class="final-cta">
+  <h2>Начни с фотки обеда</h2>
+  <p>Открой бота, скинь фото — и через 3 секунды узнаешь, приближает ли этот обед тебя к плоскому животу</p>
+  <a href="https://t.me/flatbelly_bot" class="cta-btn">
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm4.64 6.8c-.15 1.58-.8 5.42-1.13 7.19-.14.75-.42 1-.68 1.03-.58.05-1.02-.38-1.58-.75-.88-.58-1.38-.94-2.23-1.5-.99-.65-.35-1.01.22-1.59.15-.15 2.71-2.48 2.76-2.69.01-.03.01-.14-.07-.2-.08-.06-.19-.04-.28-.02-.12.03-2.07 1.32-5.84 3.87-.55.38-1.05.56-1.5.55-.49-.01-1.44-.28-2.15-.51-.87-.28-1.56-.44-1.5-.92.03-.25.38-.51 1.05-.78 4.12-1.79 6.87-2.97 8.26-3.54 3.93-1.62 4.75-1.9 5.28-1.91.12 0 .37.03.54.17.14.12.18.28.2.45-.01.06.01.24 0 .37z"/></svg>
+    Открыть FlatBelly в Telegram
+  </a>
+  <p class="cta-sub">Бесплатно · Работает сразу · Без установки</p>
+</section>
+
+<footer>
+  <p>FlatBelly Bot © 2025 · <a href="#">Политика конфиденциальности</a> · <a href="#">Оферта</a></p>
+</footer>
+
+</body>
+</html>
